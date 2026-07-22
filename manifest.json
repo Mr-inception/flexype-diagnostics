@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "FlexyPe Store Diagnostics",
+  "version": "1.0.0",
+  "description": "Instantly inspect any Shopify storefront for FlexyPe product integrations, theme details, and third-party apps.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "FlexyPe Store Diagnostics"
+  },
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["*://*/*"],
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ]
+}
