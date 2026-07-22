@@ -1,17 +1,6 @@
 /**
- * FlexyPe Store Diagnostics — popup.js
- *
- * Flow:
- * 1. Get the active tab.
- * 2. Inject `scanShopifyStore` (defined below) directly into that tab via
- *    chrome.scripting.executeScript. This function runs INSIDE the page's
- *    context, so it can read window.Shopify, <script> tags, DOM, etc.
- * 3. Render the returned JSON into the popup UI.
- *
- * NOTE: `scanShopifyStore` is passed as `func`, which means it is
- * serialized and executed in an isolated world in the page. It must be a
- * fully self-contained function — no references to outer variables from
- * this file are allowed inside it.
+ * Note: `scanShopifyStore` must stay self-contained because it's passed as `func`
+ * to chrome.scripting.executeScript and gets serialized into the page's isolated world.
  */
 
 // ---------------------------------------------------------------------------
@@ -77,20 +66,10 @@ function scanShopifyStore() {
   const htmlSource = document.documentElement.outerHTML;
 
   // ---- FLEXYPE PRODUCT SIGNATURES --------------------------------------
-  // Confirmed via live DevTools investigation on zouraofficial.com
-  // (Network tab filenames, DOM search, and window key enumeration),
-  // cross-checked against aseemshakti.com (Checkout-only control):
-  //   - FlexyPe Checkout -> loads "flexype-v2.min.js", logs
-  //     "🚀 Checkout Powered By FlexyPe!"
-  //   - FlexyCart          -> loads "flexype-cart-entry.min.js", logs
-  //     "🛒 Cart Powered By FlexyPe!"
-  //   - FlexyPass           -> loads ".../flexypass-<id>/assets/pass.min.js"
-  //     (no console banner). DOM uses "flexy-pass" (hyphenated, not
-  //     "flexypass") for ids/classes, e.g. #flexy-pass-header-wrapper,
-  //     #flexy-pass, #flexy-pass-iframe. Globals: flexyPassActive,
-  //     openFlexyPass, closeFlexyPass, flexyPassConfig, flexyPassUser,
-  //     flexyPassMid, flexyPassEnv, flexyPassConsent, flexyPassNewFlow,
-  //     flexyPassAxentraConfig, flexyPassConfigPromise.
+  // Signatures verified via DevTools investigation:
+  // - FlexyPe Checkout: flexype-v2.min.js, console banner
+  // - FlexyCart: flexype-cart-entry.min.js, console banner
+  // - FlexyPass: pass.min.js, hyphenated DOM (#flexy-pass), no console banner
   const PRODUCT_SIGNATURES = {
     'FlexyPe Checkout': {
       scriptPatterns: [/flexype-v\d+(\.min)?\.js/i, /flexype[-_.]?checkout/i],
@@ -110,7 +89,7 @@ function scanShopifyStore() {
         'flexyPassMid',
         'flexyPassEnv'
       ],
-      consolePatterns: [] // confirmed: FlexyPass prints no console banner
+      consolePatterns: []
     },
     FlexyCart: {
       scriptPatterns: [/flexype-cart-entry(\.min)?\.js/i, /flexy[-_.]?cart/i],
@@ -215,7 +194,6 @@ function scanShopifyStore() {
     }
   } catch (e) {}
 
-  // Deduplicate disabled integrations by snippet
   const seen = new Set();
   result.disabledIntegrations = result.disabledIntegrations.filter((d) => {
     if (seen.has(d.snippet)) return false;
@@ -376,10 +354,8 @@ function escapeHtml(str) {
 // ---------------------------------------------------------------------------
 // 3. BONUS: fetch product configuration from the FlexyPe backend
 // ---------------------------------------------------------------------------
-// NOTE: FlexyPe does not expose a public config API for this assignment, so
-// this calls a placeholder endpoint. Swap FLEXYPE_CONFIG_API for the real
-// endpoint if/when one is provided, and add an auth header if required.
-const FLEXYPE_CONFIG_API = 'https://api.flexype.io/v1/config'; // TODO: replace with real endpoint
+// Mock endpoint pending a real config API from FlexyPe.
+const FLEXYPE_CONFIG_API = 'https://api.flexype.io/v1/config';
 
 function renderConfigButtons(products) {
   const container = document.getElementById('configButtons');

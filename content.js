@@ -1,18 +1,9 @@
 /**
- * content.js
- *
- * Runs at document_start on every page (see manifest.json content_scripts).
- * FlexyPe's own scripts print identifying banners to the console on load
- * (confirmed via DevTools investigation, e.g. "🚀 Checkout Powered By
- * FlexyPe!" and "🛒 Cart Powered By FlexyPe!"). Since the popup only runs
- * AFTER the user clicks the extension icon — well after page load — those
- * banners would already be gone from a fresh console. This script wraps
- * console.log/info/warn early so any FlexyPe-related banner is captured
- * into window.__flexypeSignals, which the on-demand scanner (popup.js)
- * reads later as one more piece of evidence.
+ * Runs at document_start to capture FlexyPe console banners into
+ * window.__flexypeSignals before the popup is opened.
  */
 (function () {
-  if (window.__flexypeSignals) return; // avoid double-wrapping on re-injection
+  if (window.__flexypeSignals) return; // avoid double-wrapping
 
   const logs = [];
   const KEYWORD = /flexype|flexypass|flexycart/i;
